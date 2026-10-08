@@ -49,22 +49,24 @@ export class HardhatBridgeProvider extends JsonRpcApiProvider {
 
   async _send(payload: JsonRpcPayload | JsonRpcPayload[]): Promise<JsonRpcResult[]> {
     const items = Array.isArray(payload) ? payload : [payload];
-    const results: JsonRpcResult[] = [];
+    const results: Array<{ id: number; result?: unknown; error?: unknown }> = [];
     for (const item of items) {
       try {
         const result = await this.rawRequest(item.method, (item as { params?: unknown }).params);
-        results.push({ id: item.id, result } as JsonRpcResult);
+        results.push({ id: item.id, result });
       } catch (err) {
         const e = err as { code?: number; message?: string; data?: unknown } | null;
-        const error = {
-          code: e?.code ?? -32603,
-          message: e?.message ?? "hardhat request failed",
-          ...(e?.data !== undefined ? { data: e.data } : {}),
-        };
-        results.push({ id: item.id, error } as JsonRpcResult);
+        results.push({
+          id: item.id,
+          error: {
+            code: e?.code ?? -32603,
+            message: e?.message ?? "hardhat request failed",
+            ...(e?.data !== undefined ? { data: e.data } : {}),
+          },
+        });
       }
     }
-    return results;
+    return results as unknown as JsonRpcResult[];
   }
 }
 

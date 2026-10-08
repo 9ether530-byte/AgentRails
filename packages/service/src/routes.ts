@@ -1,7 +1,7 @@
 import type { RequestHandler, Router } from "express";
 import { Router as expressRouter } from "express";
-import type { Contract, Wallet } from "ethers";
-import { Interface, isAddress, getAddress, keccak256, toUtf8Bytes } from "ethers";
+import { Contract, Interface, isAddress, getAddress, keccak256, toUtf8Bytes } from "ethers";
+import type { Wallet } from "ethers";
 import type Database from "better-sqlite3";
 import { AppError, mapRevertError } from "./errors";
 import { listDealEvents } from "./db";
@@ -179,7 +179,7 @@ export function buildRouter(deps: RouterDeps): Router {
       const token = parseAddress(body.token, "token");
       const amounts = parseMilestoneAmounts(body.milestoneAmounts);
 
-      const outcome = await execTx(escrow.createDeal(seller, verifier, token, amounts.map(String)));
+      const outcome = await execTx(escrow.createDeal, [seller, verifier, token, amounts.map(String)]);
 
       let dealId: string | undefined;
       for (const log of outcome.receipt.logs) {
@@ -219,16 +219,16 @@ export function buildRouter(deps: RouterDeps): Router {
         throw new AppError(409, "WRONG_DEAL_STATE", `deal is already in state ${String(deal.state)} (0=Created, 1=Funded, 2=Cancelled)`);
       }
       const tokenAddress = String(deal.token);
-      const total = BigInt(deal.totalAmount);
+      const total = BigInt(String(deal.totalAmount));
 
       const token = new Contract(tokenAddress, ERC20_ABI, operator);
       let approveTxHash: string | undefined;
       const allowance: bigint = await token.allowance(operator.address, escrowAddress);
       if (allowance < total) {
-        const approve = await execTx(token.approve(escrowAddress, total));
+        const approve = await execTx(token.approve, [escrowAddress, total]);
         approveTxHash = approve.txHash;
       }
-      const deposit = await execTx(escrow.deposit(dealId));
+      const deposit = await execTx(escrow.deposit, [dealId]);
 
       res.status(200).json({
         dealId: dealId.toString(),
@@ -252,7 +252,7 @@ export function buildRouter(deps: RouterDeps): Router {
       const proofHash = parseProofHash(body);
       const deal = await requireDealId(req.params.dealId, deps);
       requireRole(operator, deal, "seller", "submit a proof");
-      const outcome = await execTx(escrow.submitMilestoneProof(dealId, index, proofHash));
+      const outcome = await execTx(escrow.submitMilestoneProof, [dealId, index, proofHash]);
       res.status(200).json({
         dealId: dealId.toString(),
         milestoneIndex: index,
@@ -271,7 +271,7 @@ export function buildRouter(deps: RouterDeps): Router {
       const index = parseMilestoneIndex(req.params.index);
       const deal = await requireDealId(req.params.dealId, deps);
       requireRole(operator, deal, "verifier", "approve");
-      const outcome = await execTx(escrow.approveMilestone(dealId, index));
+      const outcome = await execTx(escrow.approveMilestone, [dealId, index]);
       res.status(200).json({
         dealId: dealId.toString(),
         milestoneIndex: index,
@@ -289,7 +289,7 @@ export function buildRouter(deps: RouterDeps): Router {
       const index = parseMilestoneIndex(req.params.index);
       const deal = await requireDealId(req.params.dealId, deps);
       requireRole(operator, deal, "buyer", "dispute");
-      const outcome = await execTx(escrow.disputeMilestone(dealId, index));
+      const outcome = await execTx(escrow.disputeMilestone, [dealId, index]);
       res.status(200).json({
         dealId: dealId.toString(),
         milestoneIndex: index,
@@ -311,7 +311,7 @@ export function buildRouter(deps: RouterDeps): Router {
       }
       const deal = await requireDealId(req.params.dealId, deps);
       requireRole(operator, deal, "verifier", "resolve a dispute");
-      const outcome = await execTx(escrow.resolveDispute(dealId, index, body.releaseToSeller));
+      const outcome = await execTx(escrow.resolveDispute, [dealId, index, body.releaseToSeller]);
       res.status(200).json({
         dealId: dealId.toString(),
         milestoneIndex: index,
@@ -329,7 +329,7 @@ export function buildRouter(deps: RouterDeps): Router {
       const dealId = parseDealId(req.params.dealId);
       const index = parseMilestoneIndex(req.params.index);
       // No role check: finalize is keeper-style, callable by anyone.
-      const outcome = await execTx(escrow.finalizeMilestone(dealId, index));
+      const outcome = await execTx(escrow.finalizeMilestone, [dealId, index]);
       res.status(200).json({
         dealId: dealId.toString(),
         milestoneIndex: index,

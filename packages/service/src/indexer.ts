@@ -36,7 +36,10 @@ export class Indexer {
       const head = await provider.getBlockNumber();
       if (head <= last) return 0;
 
-      const logs = await contract.queryFilter({}, last + 1, head);
+      // Scan via provider.getLogs (no topic filter) and decode each log
+      // against the contract ABI — matches every event the contract emits.
+      const address = await contract.getAddress();
+      const logs = await provider.getLogs({ address, fromBlock: last + 1, toBlock: head });
       let inserted = 0;
       for (const log of logs) {
         const parsed = contract.interface.parseLog(log);

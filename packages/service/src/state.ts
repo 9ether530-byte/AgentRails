@@ -76,7 +76,7 @@ export async function readDeal(escrow: Contract, dealId: bigint): Promise<Serial
     return {
       index: i,
       state: asStateName(MILESTONE_STATES, m.state),
-      amount: BigInt(m.amount).toString(),
+      amount: BigInt(String(m.amount)).toString(),
       proofHash: String(m.proofHash),
       approvedAt: approvedAt > 0 ? approvedAt : null,
       disputeWindowEndsAt:
@@ -91,9 +91,9 @@ export async function readDeal(escrow: Contract, dealId: bigint): Promise<Serial
     verifier: String(deal.verifier),
     token: String(deal.token),
     state: asStateName(DEAL_STATES, deal.state),
-    totalAmount: BigInt(deal.totalAmount).toString(),
-    releasedAmount: BigInt(deal.releasedAmount).toString(),
-    refundedAmount: BigInt(deal.refundedAmount).toString(),
+    totalAmount: BigInt(String(deal.totalAmount)).toString(),
+    releasedAmount: BigInt(String(deal.releasedAmount)).toString(),
+    refundedAmount: BigInt(String(deal.refundedAmount)).toString(),
     milestoneCount: count,
     closed: Boolean(closed),
     milestones,

@@ -1,4 +1,4 @@
-import type { ContractMethod, ContractTransactionReceipt } from "ethers";
+import type { ContractTransactionReceipt } from "ethers";
 import { AppError, mapRevertError } from "./errors";
 
 export interface TxOutcome {
@@ -13,17 +13,21 @@ export interface TxOutcome {
  *    spending gas on a doomed transaction;
  * 2. send + wait — a revert after broadcast (e.g. race between check and
  *    mine) maps through the same revert translation.
+ *
+ * `method` is the UNCALLED contract method handle (e.g. `escrow.deposit`) —
+ * in ethers v6 calling `escrow.deposit(id)` executes immediately; the handle
+ * itself carries .staticCall/.send — and `args` the call arguments.
  */
-export async function execTx(method: ContractMethod): Promise<TxOutcome> {
+export async function execTx(method: any, args: unknown[]): Promise<TxOutcome> {
   try {
-    await method.staticCall();
+    await method.staticCall(...args);
   } catch (err) {
     throw mapRevertError(err);
   }
 
   let tx;
   try {
-    tx = await method.send();
+    tx = await method.send(...args);
   } catch (err) {
     throw mapRevertError(err);
   }
