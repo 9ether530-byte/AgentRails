@@ -1,0 +1,12 @@
+# NOTE: no trailing slash on purpose — packages/contracts/node_modules is a
+# SYMLINK to /tmp/ar-contracts/node_modules, and git only matches dirs (not
+# symlinks) against `node_modules/`.
+node_modules
+artifacts/
+cache/
+coverage/
+coverage.json
+typechain-types/
+dist/
+.env
+*.tsbuildinfo

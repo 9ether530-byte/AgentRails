@@ -1,0 +1,10 @@
+{
+  "name": "agentrails",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AgentRails: payment rails for autonomous AI agents on Base",
+  "scripts": {
+    "contracts:compile": "npm --prefix packages/contracts run compile",
+    "contracts:test": "npm --prefix packages/contracts run test"
+  }
+}
