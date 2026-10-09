@@ -7,7 +7,8 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:local": "hardhat run scripts/deploy/local.ts",
-    "deploy:base-sepolia": "hardhat run scripts/deploy/baseSepolia.ts"
+    "deploy:base-sepolia": "hardhat run scripts/deploy/baseSepolia.ts",
+    "manifest:base-sepolia": "hardhat run scripts/manifest.ts --network baseSepolia"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0"
