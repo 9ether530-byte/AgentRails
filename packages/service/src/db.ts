@@ -53,6 +53,17 @@ export interface StoredEvent {
   indexedAt: string;
 }
 
+/**
+ * JSON.stringify throws on BigInt ("Do not know how to serialize a BigInt"),
+ * and decoded event args are BigInt-heavy (uint256 scalars and uint256[]
+ * arrays like milestoneAmounts). Emit BigInt as decimal strings at the insert
+ * boundary so every arg round-trips through the TEXT `args` column losslessly
+ * for JSON clients, regardless of which caller produced the event.
+ */
+function bigintReplacer(_key: string, value: unknown): unknown {
+  return typeof value === "bigint" ? value.toString() : value;
+}
+
 export function insertEvent(db: Database.Database, ev: StoredEvent): boolean {
   const info = db
     .prepare(
@@ -68,7 +79,7 @@ export function insertEvent(db: Database.Database, ev: StoredEvent): boolean {
       ev.blockHash,
       ev.txHash,
       ev.logIndex,
-      JSON.stringify(ev.args),
+      JSON.stringify(ev.args, bigintReplacer),
       ev.indexedAt
     );
   return info.changes > 0;
