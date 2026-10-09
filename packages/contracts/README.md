@@ -20,6 +20,11 @@ package's dependency tree is ~450MB unpacked — a direct install dies with
 `node_modules`. `/tmp` does not survive a reboot; the script is the one
 command that brings the toolchain back.
 
+**The script now rebuilds BOTH packages** (`/tmp/ar-contracts` and
+`/tmp/ar-service`) and compiles the contracts if `artifacts/` are missing —
+the escrow service package reads this package's artifacts as its ABI source of
+truth. Run it once after a reboot and both packages are ready.
+
 Node 18+ required. Dependencies: `hardhat`, `ethers` v6, the Hardhat
 ethers/chai-matchers/network-helpers plugins, and `@openzeppelin/contracts` v5.
 
