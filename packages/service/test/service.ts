@@ -204,7 +204,12 @@ describe("create -> deposit -> submit -> approve -> finalize (happy path)", () =
 
   it("pays the 50bps fee to treasury and the rest to the seller", async () => {
     const treasuryBefore = BigInt(await (ctx.token.connect(ctx.provider) as any).balanceOf(ctx.treasury));
-    const fee = (BigInt(M0) * 50n) / 10_000n;
+    // The deal created below has a single 10-USDC milestone; the treasury
+    // delta is 50bps of THAT amount. M0 (USDC(100)) belongs to deal 1, which
+    // was released in an earlier test, before treasuryBefore was captured —
+    // the contract pays fee = milestone.amount * feeBps / 10000.
+    const amount = USDC(10);
+    const fee = (BigInt(amount) * 50n) / 10_000n;
 
     // create + fund + submit + approve + (window elapses) + release, and
     // observe the exact fee delta on the treasury
