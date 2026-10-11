@@ -151,6 +151,9 @@ The script sanity-checks that the token address is a deployed contract with 6
 decimals and that the deployer holds gas, then deploys Escrow with the given
 treasury and 50 bps fee.
 
+Full deployment runbook — deployer wallet address, faucet funding steps,
+preflight, and the deployment manifest: see **DEPLOYMENT.md**.
+
 ## Test coverage
 
 `test/Escrow.ts` covers: deployment params, deal creation/validation, deposit,
